@@ -5,7 +5,7 @@ const { Panel, Canvas, VSlider, Button, TextBox } = mc2;
 // MODEL
 /////////////////////////////
 const model = {
-  gravity: 50,
+  gravity: 65,
   maxSpeed: 6,
   damp: 0.995,
   num: 50,
