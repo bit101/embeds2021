@@ -1,51 +1,93 @@
 const { Random, Context, FPS } = bljs;
-const { Panel, Canvas, Knob, VBox, TextBox } = mc2;
+const { Panel, Canvas, VSlider, Button, TextBox } = mc2;
 
+/////////////////////////////
+// MODEL
+/////////////////////////////
+const model = {
+  gravity: 50,
+  maxSpeed: 6,
+  damp: 0.995,
+  num: 50,
+  size: 1,
+};
 
+/////////////////////////////
+// CONTROLS
+/////////////////////////////
 const panel = new Panel(document.body, 0, 0, 580, 440);
 const canvas = new Canvas(panel, 160, 20, 400, 400);
 const context = canvas.context;
 Context.extendContext(context);
 
-// Random.seed(5);
+new VSlider(panel, 20, 40, "Gravity", model.gravity, 0, 100)
+  .rotateDeg(5)
+  .bind(model, "gravity");
+
+new VSlider(panel, 70, 35, "Max Vel", model.maxSpeed, 1, 20)
+  .rotateDeg(-3)
+  .bind(model, "maxSpeed");
+
+new VSlider(panel, 120, 40, "Damp", model.damp, 0.9, 1)
+  .rotateDeg(2)
+  .setDecimals(3)
+  .bind(model, "damp");
+
+new VSlider(panel, 20, 250, "Count", model.num, 3, 500)
+  .rotateDeg(-5)
+  .bind(model, "num");
+
+new VSlider(panel, 70, 250, "Size", model.size, 0.5, 10)
+  .rotateDeg(3)
+  .setDecimals(1)
+  .bind(model, "size");
+
+new Button(panel, 75, 320, "Reset", init)
+  .rotateDeg(-60);
+
+const fps = new FPS(panel, 160, 425);
+fps.start();
+
+/////////////////////////////
+// VIEW
+/////////////////////////////
 
 const points = [];
-const num = 1000 ;
-for (let i = 0; i < num; i++) {
-  points.push({
-    x: Random.float(10, 20),
-    y: Random.float(10, 20),
-    vx: Random.float(-1, 1),
-    vy: Random.float(-1, 1),
-  });
-}
+
+init();
 render();
-// console.log(pointOnLeft(
-//   {x: 100, y: 200},
-//   {x: 50, y: 150},
-//   {x: 150, y: 150},
-//  ));
+
+function init() {
+  points.length = 0;
+  for (let i = 0; i < 500; i++) {
+    points.push({
+      x: Random.float(10, 20),
+      y: Random.float(10, 20),
+      vx: Random.float(-1, 1),
+      vy: Random.float(-1, 1),
+    });
+  }
+}
 
 function render() {
   context.clearWhite();
-  context.fillStyle = "black";
-  context.fillCircle(200, 200, 4);
 
-  points.forEach(p => {
+  for (let i = 0; i < model.num; i++) {
+    // I really just need to make a reusable particle class
+    const p = points[i];
     const dx = 200 - p.x;
     const dy = 200 - p.y;
     const dsq = dx * dx + dy * dy;
     const dist = Math.sqrt(dsq);
-    p.vx += 50 / dsq * dx / dist;
-    p.vy += 50 / dsq * dy / dist;
+    p.vx += model.gravity / dsq * dx / dist;
+    p.vy += model.gravity / dsq * dy / dist;
     const speed = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
-    const max = 6;
-    if (speed > max) {
-      p.vx *= max / speed;
-      p.vy *= max / speed;
+    if (speed > model.maxSpeed) {
+      p.vx *= model.maxSpeed / speed;
+      p.vy *= model.maxSpeed / speed;
     }
-    p.vx *= 0.995;
-    p.vy *= 0.995;
+    p.vx *= model.damp;
+    p.vy *= model.damp;
     p.x += p.vx;
     p.y += p.vy;
     if (p.x < 0) {
@@ -62,54 +104,56 @@ function render() {
       p.y = 400;
       p.vy *= -1;
     }
-  });
-  context.fillStyle = "black";
-  context.points(points, 1);
+    context.fillStyle = "black";
+    context.fillCircle(p.x, p.y, model.size);
+  }
+  context.fillCircle(200, 200, 4);
 
   const hull = convexHull(points);
-  context.fillStyle = "rgba(0, 0, 0, 0.05)";
+  context.fillStyle = "rgba(0, 0, 0, 0.09)";
   context.fillPath(hull);
   requestAnimationFrame(render);
+  fps.logFrame();
 }
 
-function convexHull(points) {
-  let hull = [];
-  let p0 = startPoint(points);
-  let p1;
-  let i = 0;
+function convexHull(list) {
+  const hull = [];
+  let start = startPoint(list);
+  let end;
   do {
-    hull[i] = p0;
-    p1 = points[0];
-    for (let j = 0; j < points.length; j++) {
-      if (p1 === p0 || pointOnLeft(points[j], hull[i], p1)) {
-        p1 = points[j];
+    hull.push(start);
+    end = list[0];
+    for (let i = 1; i < model.num; i++) {
+      const point = list[i];
+      if (end === start || orientation(start, point, end) === 1) {
+        end = point;
       }
     }
-    i++;
-    p0 = p1;
-  } while (p1 !== hull[0]); 
+    start = end;
+  } while (end !== hull[0]);
   return hull;
 }
 
-function pointOnLeft(p0, p1, p2) {
-  if (p0 === p1 || p0 === p2) {
-    return false;
+function orientation(p, q, r) {
+  const val = (q.y - p.y) * (r.x - q.x) - (q.x - p.x) * (r.y - q.y);
+  if (val === 0) {
+    return 0; // colinear
   }
-  const lineAngle = Math.atan2(p2.y - p1.y, p2.x - p1.x);
-  const pointAngle = Math.atan2(p0.y - p1.y, p0.x - p1.x);
-  const diff = lineAngle - pointAngle;
-  const result =  (diff > 0 && diff < Math.PI) || (diff < -Math.PI);
-  return result;
+  if (val > 0) {
+    return 1; // clockwise
+  }
+  return 2; // counterclockwise
 }
 
-function startPoint(points) {
+function startPoint(list) {
   let min = Number.MAX_VALUE;
   let point;
-  points.forEach(p => {
+  for (let i = 0; i < model.num; i++) {
+    const p = list[i];
     if (p.x < min) {
       min = p.x;
       point = p;
     }
-  });
+  }
   return point;
 }
