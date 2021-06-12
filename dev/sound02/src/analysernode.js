@@ -3,7 +3,7 @@
 class AnalyserNode extends Node {
   constructor(parent, context) {
     super(parent, context);
-    this._win.setSize(700, 380);
+    this._win.setSize(700, 400);
     this.setTitle("Analyser");
     this._analyser = this._context.createAnalyser();
     this._bufferLength = this._analyser.frequencyBinCount;
@@ -11,7 +11,10 @@ class AnalyserNode extends Node {
     this._analyser.getByteTimeDomainData(this._dataArray);
     this._analyser.fftSize = 2048;
 
-    this._canvas = new Canvas(this._win, 0, 0, 700, 350);
+    this._onToggle = this._onToggle.bind(this);
+    this._toggle = new Toggle(this._win, 10, 25, "Off", false, this._onToggle);
+
+    this._canvas = new Canvas(this._win, 0, 50, 700, 320);
     this._context = this._canvas.context;
     this._render = this._render.bind(this);
     this._render();
@@ -21,7 +24,19 @@ class AnalyserNode extends Node {
   // PRIVATE
   //////////////////////////////
 
+  _onToggle() {
+    if (this._toggle.toggled) {
+      this._toggle.text = "On";
+    } else {
+      this._toggle.text = "Off";
+    }
+  }
+
   _render() {
+    requestAnimationFrame(this._render);
+    if (!this._toggle.toggled) {
+      return;
+    }
     const w = this._canvas.width;
     const h = this._canvas.height;
 
@@ -44,7 +59,6 @@ class AnalyserNode extends Node {
 
     this._context.lineTo(w, h / 2);
     this._context.stroke();
-    requestAnimationFrame(this._render);
   }
 
   //////////////////////////////
