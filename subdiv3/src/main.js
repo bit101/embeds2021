@@ -1,5 +1,5 @@
 const { Context, Random } = bljs;
-const { Panel, Canvas, VSlider } = mc2;
+const { Panel, Canvas, VSlider, Dropdown, Label } = mc2;
 
 /////////////////////////////
 // MODEL
@@ -23,17 +23,61 @@ const panel = new Panel(document.body, 0, 0, 780, 640);
 const canvas = new Canvas(panel, 160, 20, 600, 600);
 const context = canvas.context;
 Context.extendContext(context);
-const depthSlider = new VSlider(panel, 50, 40, "Iterations", 6, 1, 14);
-const shakeSlider = new VSlider(panel, 100, 40, "Shake", 1, 0, 10);
+const depthSlider = new VSlider(panel, 20, 40, "Iters", 6, 1, 14);
+const widthSlider = new VSlider(panel, 70, 40, "Line Width", 0.5, 0.05, 10)
+  .setDecimals(2);
+const shakeSlider = new VSlider(panel, 120, 40, "Shake", 1, 0, 10);
 const springSlider = new VSlider(panel, 50, 240, "Spring", 0.05, 0.01, 0.5)
   .setDecimals(2);
 const dampSlider = new VSlider(panel, 100, 240, "Damp", 0.93, 0.8, 1.0)
   .setDecimals(2);
 
+new Label(panel, 20, 440, "Presets");
+const presetList = new Dropdown(panel, 20, 460, ["Springy", "Reconstruct", "Tween", "Stiff", "Chaos"], 0, doPreset);
+
 /////////////////////////////
 // VIEW
 /////////////////////////////
 
+function doPreset() {
+  switch (presetList.text) {
+  case "Springy":
+    depthSlider.value = 14;
+    widthSlider.value = 0.5;
+    shakeSlider.value = 1;
+    springSlider.value = 0.05;
+    dampSlider.value = 0.93;
+    break;
+  case "Reconstruct":
+    depthSlider.value = 14;
+    widthSlider.value = 0.5;
+    shakeSlider.value = 10;
+    springSlider.value = 0.01;
+    dampSlider.value = 0.9;
+    break;
+  case "Tween":
+    depthSlider.value = 14;
+    widthSlider.value = 0.5;
+    shakeSlider.value = 0;
+    springSlider.value = 0.01;
+    dampSlider.value = 0.8;
+    break;
+  case "Chaos":
+    depthSlider.value = 14;
+    widthSlider.value = 0.5;
+    shakeSlider.value = 10;
+    springSlider.value = 0.01;
+    dampSlider.value = 1;
+    break;
+  case "Stiff":
+    depthSlider.value = 14;
+    widthSlider.value = 0.5;
+    shakeSlider.value = 5;
+    springSlider.value = 0.5;
+    dampSlider.value = 0.8;
+    break;
+  }
+}
 canvas.canvas.addEventListener("mousemove", onMouseMove);
 context.lineWidth = 0.5;
 
@@ -41,6 +85,7 @@ render();
 
 function render() {
   context.clearWhite();
+  context.lineWidth = widthSlider.value;
   context.beginPath();
   const k = springSlider.value;
   const damp = dampSlider.value;

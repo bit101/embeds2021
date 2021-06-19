@@ -1,6 +1,5 @@
 const { Random, Context, FPS } = bljs;
-const { Panel, Canvas, Knob, VBox, TextBox } = mc2;
-
+const { Panel, Canvas, Knob, VBox, TextBox } = mc;
 
 const panel = new Panel(document.body, 0, 0, 580, 440);
 const canvas = new Canvas(panel, 160, 20, 400, 400);
@@ -48,8 +47,8 @@ function render() {
 
   let xvel = Math.sin(phase) * 0.05;
   let yvel = Math.sin(phase * 1.357 + 2) * 0.05;
-  let wh = waveHeightKnob.value;
-  let wander = wanderKnob.value / 100;
+  const wh = waveHeightKnob.value;
+  const wander = wanderKnob.value / 100;
   for (let i = 0; i < lengthKnob.value; i++) {
     xradius = Math.sin(xangle * Math.PI * waveKnob.value) * wh + 140 - wh;
     yradius = Math.sin(yangle * Math.PI * waveKnob.value) * wh + 140 - wh;
