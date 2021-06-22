@@ -1,5 +1,5 @@
 const { Context, DragPoint, Num } = bljs;
-const { Panel, Canvas } = mc2;
+const { Panel, Canvas } = mc;
 
 /////////////////////////////
 // MODEL
@@ -17,7 +17,7 @@ Context.extendContext(context);
 // VIEW
 /////////////////////////////
 
-const p0 = new DragPoint(100, 100, "0", context, render);
+const p0 = new DragPoint(150, 100, "0", context, render);
 const p1 = new DragPoint(200, 100, "1", context, render);
 const p2 = new DragPoint(100, 200, "2", context, render);
 
@@ -39,7 +39,7 @@ function render() {
   // const A = Num.dist(p0.x, p0.y, p1.x, p1.y);
   // const B = Num.dist(p1.x, p1.y, p2.x, p2.y);
   // const C = Num.dist(p2.x, p2.y, p0.x, p0.y);
-  const pX = orthoCenter(p0, p1, p2);
+  const pX = Num.orthoCenter(p0, p1, p2);
   context.fillCircle(pX.x, pX.y, 5);
   context.strokeStyle = "red";
   context.beginPath();
@@ -52,21 +52,31 @@ function render() {
   context.stroke();
 }
 
-function orthoCenter(p0, p1, p2) {
-  const slopeA = -(p1.x - p0.x) / (p1.y - p0.y);
-  const pA = {
-    x: p2.x + 100,
-    y: p2.y + slopeA * 100,
-  };
-  const slopeB = -(p2.x - p1.x) / (p2.y - p1.y);
-  console.log(slopeB);
-  const pB = {
-    x: p0.x + 100,
-    y: p0.y + 100 * slopeB,
-  };
+// function orthoCenter(p0, p1, p2) {
+//   let temp;
+//   if (p1.y - p0.y === 0) {
+//     temp = p1;
+//     p1 = p2;
+//     p2 = temp;
+//   } else if (p2.y - p1.y === 0) {
+//     temp = p1;
+//     p1 = p0;
+//     p0 = temp;
+//   }
+//   const slopeA = -(p1.x - p0.x) / (p1.y - p0.y);
+//   const pA = {
+//     x: p2.x + 100,
+//     y: p2.y + slopeA * 100,
+//   };
+//   const slopeB = -(p2.x - p1.x) / (p2.y - p1.y);
+//   console.log(slopeB);
+//   const pB = {
+//     x: p0.x + 100,
+//     y: p0.y + 100 * slopeB,
+//   };
 
-  return Num.lineIntersect(p2, pA, p0, pB);
-}
+//   return Num.lineIntersect(p2, pA, p0, pB);
+// }
 
 // function lineIntersect(p0, p1, p2, p3) {
 //   const A1 = p1.y - p0.y;
