@@ -1,4 +1,4 @@
-const { Context, Anim } = bljs;
+const { Random, Context, Anim } = bljs;
 const { Panel, Canvas } = mc;
 
 /////////////////////////////
@@ -23,8 +23,11 @@ Context.extendContext(context);
 /////////////////////////////
 
 const anim = new Anim(render);
-anim.run();
+// anim.run();
 
 function render(fps) {
-
+  context.beginPath();
+  context.moveTo(Random.float(400), Random.float(400));
+  context.lineTo(Random.float(400), Random.float(400));
+  context.stroke();
 }
