@@ -1,5 +1,5 @@
 const { Random, Context, FPS } = bljs;
-const { Panel, Canvas, VSlider, Button, TextBox } = mc2;
+const { Panel, Canvas, VSlider, Button, TextBox } = mc;
 
 /////////////////////////////
 // MODEL

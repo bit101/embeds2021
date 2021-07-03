@@ -19,6 +19,7 @@ const model = {
   seed: Random.int(10000),
   p: null,
   doReset: true,
+  bounceAngle: 1,
 };
 
 /////////////////////////////
@@ -29,44 +30,48 @@ const canvas = new Canvas(panel, 160, 20, 600, 600);
 const context = canvas.context;
 Context.extendContext(context);
 
-new Knob(panel, 20, 40, "Noise Scale", model.scale, 0.001, 0.1, reset)
+new Knob(panel, 20, 35, "Noise Scale", model.scale, 0.001, 0.1, reset)
   .bind(model, "scale")
   .setDecimals(3);
-new Knob(panel, 100, 40, "Spacing", model.spacing, 0.01, 0.5, reset)
+new Knob(panel, 100, 35, "Spacing", model.spacing, 0.01, 0.5, reset)
   .bind(model, "spacing")
   .setDecimals(2);
 
-new Knob(panel, 20, 130, "Bounces", model.maxCount, 1, 1000, reset)
+new Knob(panel, 20, 120, "Bounces", model.maxCount, 1, 1000, reset)
   .bind(model, "maxCount");
-new Knob(panel, 100, 130, "Line Width", model.lineWidth, 0.05, 5, reset)
+new Knob(panel, 100, 120, "Line Width", model.lineWidth, 0.05, 5, reset)
   .bind(model, "lineWidth")
   .setDecimals(2);
 
-new Knob(panel, 20, 220, "Point Size", model.pSize, 0, 4, reset)
+new Knob(panel, 20, 205, "Point Size", model.pSize, 0, 4, reset)
   .bind(model, "pSize")
   .setDecimals(1);
-new Knob(panel, 100, 220, "Wander", model.wander, 0.0, 0.5, reset)
+new Knob(panel, 100, 205, "Wander", model.wander, 0.0, 0.5, reset)
   .bind(model, "wander")
   .setDecimals(2);
 
-new NumericStepper(panel, 20, 310, "Seed", model.seed, 0, 10000, reset)
+new Knob(panel, 50, 290, "Bounce Angle", model.bounceAngle, 0.1, 1, reset)
+  .bind(model, "bounceAngle")
+  .setDecimals(1);
+
+new NumericStepper(panel, 20, 370, "Seed", model.seed, 0, 10000, reset)
   .bind(model, "seed");
 
-new ColorPicker(panel, 20, 360, "Inner", model.innerColor, reset)
+new ColorPicker(panel, 20, 410, "Inner", model.innerColor, reset)
   .bind(model, "innerColor");
-new ColorPicker(panel, 20, 400, "Outer", model.outerColor, reset)
+new ColorPicker(panel, 20, 450, "Outer", model.outerColor, reset)
   .bind(model, "outerColor");
-new ColorPicker(panel, 20, 440, "Point", "#000", reset)
+new ColorPicker(panel, 20, 490, "Point", "#000", reset)
   .bind(model, "pColor");
-const bgPicker = new ColorPicker(panel, 20, 480, "Background", "#fff", reset)
+const bgPicker = new ColorPicker(panel, 20, 530, "Background", "#fff", reset)
   .setSliderPosition("top");
 
-const connLabel = new Label(panel, 20, 520, "Connections: 0");
-const playButton = new PlayButton(panel, 20, 550, true);
-new Button(panel, 80, 550, "Reset", () => reset(true))
+const playButton = new PlayButton(panel, 20, 570, true);
+new Button(panel, 80, 570, "Reset", () => reset(true))
   .setWidth(60);
 
-new Checkbox(panel, 20, 590, "Reset on changes", true)
+const connLabel = new Label(panel, 20, 600, "Connections: 0");
+new Checkbox(panel, 20, 620, "Reset on changes", true)
   .bind(model, "doReset");
 
 /////////////////////////////
@@ -97,7 +102,7 @@ function render() {
   context.fillCircle(model.p.x, model.p.y, model.pSize);
   model.p.x -= vx;
   model.p.y -= vy;
-  model.p.angle = Random.float(Math.PI * 2);
+  model.p.angle = model.p.angle + Math.PI + Random.float(-model.bounceAngle, model.bounceAngle);
   model.count++;
   connLabel.text = "Bounces: " + model.count;
   if (model.count > model.maxCount) {
@@ -109,11 +114,9 @@ function render() {
 function checkThreshold(n) {
   if (model.threshold < 0) {
     return n < model.threshold;
-  } else {
-    return n > model.threshold;
   }
+  return n > model.threshold;
 }
-
 
 function makePoint() {
   model.p = Random.point(0, 0, 600, 600);

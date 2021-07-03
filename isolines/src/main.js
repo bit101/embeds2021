@@ -1,5 +1,5 @@
 const { Context, Anim, Random } = bljs;
-const { Label, VSlider, Toggle, Button, Panel, Canvas, PlayButton } = mc2;
+const { Label, VSlider, Toggle, Button, Panel, Canvas, PlayButton } = mc;
 
 /////////////////////////////
 // MODEL

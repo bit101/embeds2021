@@ -40,6 +40,7 @@ new Knob(panel, 90, 140, "Line Width", model.lineWidth, 0.01, 10)
   .setDecimals(2);
 
 new Knob(panel, 20, 240, "Wave", model.wave, 0, 16)
+  .setDecimals(2)
   .bind(model, "wave");
 new Knob(panel, 90, 240, "Circle Size", model.radius, 1, 100)
   .bind(model, "radius");

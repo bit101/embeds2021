@@ -1,5 +1,5 @@
 const { Context, Anim, Random, Num } = bljs;
-const { Checkbox, Label, Toggle, Button, Panel, Canvas, PlayButton, Knob } = mc2;
+const { Checkbox, Label, Toggle, Button, Panel, Canvas, PlayButton, Knob } = mc;
 
 /////////////////////////////
 // MODEL
