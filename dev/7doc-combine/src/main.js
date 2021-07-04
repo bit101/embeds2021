@@ -5,20 +5,20 @@ const { Knob, NumericStepper, Panel, Canvas } = mc;
 // MODEL
 /////////////////////////////
 
+const width = 600;
+const height = 600;
 const model = {
-  radius: 180,
+  radius: 280,
   sides: 3,
-  count: 20,
-  subSides: 4,
   rotation: 0,
-  subRotation: 0,
+  points: [],
 };
 
 /////////////////////////////
 // CONTROLS
 /////////////////////////////
-const panel = new Panel(document.body, 0, 0, 580, 440);
-const canvas = new Canvas(panel, 160, 20, 400, 400);
+const panel = new Panel(document.body, 0, 0, 780, 640);
+const canvas = new Canvas(panel, 160, 20, width, height);
 const context = canvas.context;
 Context.extendContext(context);
 
@@ -26,21 +26,12 @@ new NumericStepper(panel, 20, 40, "Sides", model.sides, 3, 20)
   .bind(model, "sides")
   .addHandler(render);
 
-new NumericStepper(panel, 20, 80, "Count", model.count, 1, 100)
-  .bind(model, "count")
+new Knob(panel, 20, 100, "Radius", model.radius, 10, 300)
+  .bind(model, "radius")
   .addHandler(render);
 
-new NumericStepper(panel, 20, 120, "Sub Sides", model.subSides, 3, 6)
-  .bind(model, "subSides")
-  .addHandler(render);
-
-new Knob(panel, 20, 200, "Rotation", model.rotation, 0, Math.PI * 2)
+new Knob(panel, 90, 100, "Rotation", model.rotation, 0, Math.PI * 2)
   .bind(model, "rotation")
-  .setDecimals(2)
-  .addHandler(render);
-
-new Knob(panel, 90, 200, "Sub Rotation", model.subRotation, 0, Math.PI * 2)
-  .bind(model, "subRotation")
   .setDecimals(2)
   .addHandler(render);
 
@@ -48,12 +39,25 @@ new Knob(panel, 90, 200, "Sub Rotation", model.subRotation, 0, Math.PI * 2)
 // VIEW
 /////////////////////////////
 
-render();
-
 function render() {
+  console.log(model.drawing);
   context.clearWhite();
+  if (model.drawing) {
+    context.strokePath(model.points);
+    return;
+  }
+  if (model.points.length === 0) {
+    return;
+  }
+  const x = model.points[0].x;
+  const y = model.points[0].y;
+  model.points.forEach(p => {
+    p.x -= x;
+    p.y -= y;
+  });
+
   context.save();
-  context.translate(200, 200);
+  context.translate(width / 2, height / 2);
   context.rotate(model.rotation);
 
   for (let i = 0; i < model.sides; i++) {
@@ -63,31 +67,52 @@ function render() {
     const angle1 = (i + 1) / model.sides * Math.PI * 2;
     const x1 = Math.cos(angle1) * model.radius;
     const y1 = Math.sin(angle1) * model.radius;
-    const length = Num.dist(x0, y0, x1, y1);
-    const radius = length / (model.count * 2);
-    const angle = Math.atan2(y1 - y0, x1 - x0);
-
-    for (let j = 0; j < model.count; j++) {
-      const t = j / model.count;
-      const x = Num.lerp(x0, x1, t);
-      const y = Num.lerp(y0, y1, t);
-      drawSub(x, y, radius, angle);
-    }
+    drawShape(x0, y0, x1, y1);
   }
-
   context.restore();
 }
 
-function drawSub(x, y, radius, angle) {
+function drawShape(x0, y0, x1, y1) {
+  const length = Num.dist(x0, y0, x1, y1);
+  const angle = Math.atan2(y1 - y0, x1 - x0);
+  const p0 = model.points[0];
+  const p1 = model.points[model.points.length - 1];
+  const shapeLength = Num.dist(p0.x, p0.y, p1.x, p1.y);
+  const shapeAngle = Math.atan2(p1.y - p0.y, p1.x - p0.x);
+  const scale = length / shapeLength;
+
   context.save();
-  context.translate(x, y);
-  context.rotate(angle + model.subRotation);
+  context.translate(x0, y0);
+  context.rotate(angle - shapeAngle);
+  context.scale(scale, scale);
   context.beginPath();
-  for (let i = 0; i < model.subSides; i++) {
-    const angle = i / model.subSides * Math.PI * 2;
-    context.lineTo(Math.cos(angle) * radius, Math.sin(angle) * radius);
-  }
-  context.closePath();
-  context.stroke();
+  context.path(model.points);
   context.restore();
+  context.stroke();
+}
+
+canvas.addEventListener("mousedown", onMouseDown);
+
+function onMouseDown(event) {
+  model.points = [];
+  const x = event.clientX - canvas.getBoundingClientRect().left;
+  const y = event.clientY - canvas.getBoundingClientRect().top;
+  model.points.push({x, y});
+  document.addEventListener("mousemove", onMouseMove);
+  document.addEventListener("mouseup", onMouseUp);
+  model.drawing = true;
+}
+
+function onMouseMove(event) {
+  const x = event.clientX - canvas.getBoundingClientRect().left;
+  const y = event.clientY - canvas.getBoundingClientRect().top;
+  model.points.push({x, y});
+  render();
+}
+
+function onMouseUp(event) {
+  document.removeEventListener("mousemove", onMouseMove);
+  document.removeEventListener("mouseup", onMouseUp);
+  model.drawing = false;
+  render();
 }
