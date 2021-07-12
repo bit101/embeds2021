@@ -11,16 +11,28 @@ class Agent {
     this.y = y;
     this.heading = heading;
     this.speed = Random.float(0.01, 0.3);
+    this.sensorAngle = 0.5;
+    this.sensorLength = 3;
   }
 
-  update() {
+  update(imageData) {
+    this.checkSensor(-this.sensorAngle, imageData);
+    this.checkSensor(this.sensorAngle, imageData);
     this.x += Math.cos(this.heading) * this.speed;
     this.y += Math.sin(this.heading) * this.speed;
-    this.heading += Random.float(-0.1, 0.1);
+    // this.heading += Random.float(-0.1, 0.1);
   }
 
   render(context) {
     context.fillRect(this.x - 0.5, this.y - 0.5, 1, 1);
+  }
+
+  checkSensor(angle, imageData) {
+    const x = Math.round(this.x + Math.cos(angle) * this.sensorLength);
+    const y = Math.round(this.y + Math.sin(angle) * this.sensorLength);
+    const index = (y * 400 + x) * 4;
+    const data = imageData[index];
+    this.heading += data * angle * 0.1;
   }
 }
 
@@ -35,19 +47,26 @@ class AgentList {
 
   addRandomAgents(x, y, count) {
     for (let i = 0; i < count; i++) {
-      this.addAgent(x, y, Random.float(Math.PI * 2));
+      // this.addAgent(x, y, Random.float(Math.PI * 2));
+      const angle = i / count * Math.PI * 2;
+      this.addAgent(x + Math.cos(angle) * 20, y + Math.sin(angle) * 20, angle);
     }
   }
 
-  update() {
-    this.agents.forEach(agent => agent.update());
+  update(imageData) {
+    this.agents.forEach(agent => agent.update(imageData));
   }
 
   reset(x, y) {
-    this.agents.forEach(agent => {
-      agent.x = x;
-      agent.y = y;
-      agent.heading = Random.float(Math.PI * 2);
+    const count = this.agents.length;
+    this.agents.forEach((agent, i) => {
+      const angle = i / count * Math.PI * 2;
+      agent.x = x + Math.cos(angle) * 20;
+      agent.y = y + Math.sin(angle) * 20;
+      agent.angle = angle;
+      // agent.x = x;
+      // agent.y = y;
+      // agent.heading = Random.float(Math.PI * 2);
     });
   }
 
@@ -114,8 +133,9 @@ const anim = new Anim(render);
 anim.run();
 
 function render(fps) {
+  const imageData = context.getImageData(0, 0, 400, 400).data;
   fpsLabel.text = "FPS: " + fps;
-  model.agents.update();
+  model.agents.update(imageData);
   model.agents.render(context);
 
   context.filter = `blur(${model.blur}px) brightness(${model.fade}%)`;
