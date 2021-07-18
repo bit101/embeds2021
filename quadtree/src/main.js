@@ -1,21 +1,41 @@
 const { Random, Noise, Context, Anim } = bljs;
-const { Panel, Canvas } = mc;
+const { HSlider, Panel, Canvas } = mc;
 
 /////////////////////////////
 // MODEL
 /////////////////////////////
 
+const width = 400;
+const height = 400;
 const model = {
+  scale: 0.01,
+  speed: 0.01,
+  count: 1000,
+  limit: 3,
 };
 
 /////////////////////////////
 // CONTROLS
 /////////////////////////////
-const panel = new Panel(document.body, 0, 0, 580, 440);
-const canvas = new Canvas(panel, 160, 20, 400, 400);
+const panel = new Panel(document.body, 0, 0, 210 + width, 40 + height);
+const canvas = new Canvas(panel, 190, 20, width, height);
 const context = canvas.context;
 Context.extendContext(context);
-context.lineWidth = 0.1;
+context.lineWidth = 0.2;
+
+new HSlider(panel, 20, 40, "Noise Scale", model.scale, 0.001, 0.1)
+  .setDecimals(3)
+  .bind(model, "scale");
+
+new HSlider(panel, 20, 80, "Noise Speed", model.speed, 0.001, 0.1)
+  .setDecimals(3)
+  .bind(model, "speed");
+
+new HSlider(panel, 20, 120, "Count", model.count, 100, 10000)
+  .bind(model, "count");
+
+new HSlider(panel, 20, 160, "Limit", model.limit, 1, 500)
+  .bind(model, "limit");
 
 class QuadTree {
   constructor(x, y, w, h, limit) {
@@ -69,7 +89,7 @@ class QuadTree {
     } else {
       // context.fillCircle(this.x + this.w / 2, this.y + this.h / 2, this.w / 2);
       context.strokeRect(this.x, this.y, this.w, this.h);
-      // context.points(this.points, 0.5);
+      context.points(this.points, 1);
     }
   }
 }
@@ -83,18 +103,19 @@ const anim = new Anim(render);
 anim.run();
 
 function render() {
+  Random.seed(0);
   context.clearWhite();
-  const qt = new QuadTree(0, 0, 400, 400, 3);
+  const qt = new QuadTree(0, 0, 400, 400, model.limit);
 
-  const scale = 0.01;
-  for (let i = 0; i < 5000; i++) {
-    const x = Random.float(400);
-    const y = Random.float(400);
+  const scale = model.scale;
+  for (let i = 0; i < model.count; i++) {
+    const x = Random.float(width);
+    const y = Random.float(height);
     const n = Noise.perlin(x * scale, y * scale, z);
     if (n > 0) {
       qt.addPoint({x, y});
     }
   }
-  z += 0.01;
+  z += model.speed;
   qt.draw(context);
 }
