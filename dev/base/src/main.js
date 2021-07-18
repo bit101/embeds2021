@@ -14,7 +14,7 @@ const model = {
 // CONTROLS
 /////////////////////////////
 const panel = new Panel(document.body, 0, 0, 210 + width, height + 40);
-const canvas = new Canvas(panel, 160, 20, width, height);
+const canvas = new Canvas(panel, 190, 20, width, height);
 const context = canvas.context;
 Context.extendContext(context);
 
